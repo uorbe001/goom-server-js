@@ -2,12 +2,6 @@ var sys = require('util');
 var fs = require('fs');
 var exec = require('child_process').exec;
 
-var config = {
-	baseUrl: "src/",
-	name: "goom-ai",
-	out: "dist/goom-ai.min.js",
-};
-
 desc("This is the default task.");
 task("default", function(params) {
 	//Do something.
@@ -24,8 +18,11 @@ task("test", function(params){
 desc("Builds the project into a minified file.");
 task("build", function(params){
 	console.log("Building the project into a minified file...")
-	exec("browserify src/goom-ai.js  -o dist/goom-ai.js", function (error, stdout, stderr) {
+	exec("browserify src/goom-server.js  -o dist/goom-server.js", function (error, stdout, stderr) {
 		sys.print(stdout);
-		console.log("The file is ready at dist/goom-ai.js");
+		if (error)
+			sys.print(stderr);
+		else
+			console.log("The file is ready at dist/goom-server.js");
 	});
 });
