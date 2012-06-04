@@ -94,7 +94,8 @@ describe("Server", function(){
 		};
 
 		this.outEvents = [];
-		var broadcast = function(event) { console.log("hola"); that.outEvents.push(event) ;};
+		var that = this;
+		var broadcast = function(event) { that.outEvents.push(event) ;};
 		this.server = new Server(config, broadcast);
 	});
 

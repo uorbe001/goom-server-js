@@ -66,8 +66,19 @@ Server.prototype.update = function(time) {
 
 	this.aiWorld.update(time);
 	this.physicsWorld.update(time);
+
+	var bodies = this.physicsWorld.rigidBodies, body, update_event = {"type": "updateWorld", "bodies": []};
+	for (var i = bodies.length - 1; i >= 0; i--) {
+		body = bodies[i];
+		//no need to update the body data to the clients if it is unchanged.
+		if (!body.isDirty) continue;
+		update_event.bodies.push({"position": {"x": body.position.x, "y": body.position.y, "z": body.position.z},
+			"orientation": {"r": body.orientation.r, "i": body.orientation.i, "j": body.orientation.j, "k": body.orientation.k}});
+	}
+	this.outgoingEvents.push(update_event);
 	
-	for (var i = this.outgoingEvents.length - 1; i >= 0; i--) {
+	//Broadcast the outgoing events to the clients.
+	for (i = this.outgoingEvents.length - 1; i >= 0; i--) {
 		this.broadcastCallback(this.outgoingEvents[i]);
 	}
 
