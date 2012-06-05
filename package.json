@@ -3,5 +3,5 @@
 	"version": "0.0.1",
 	"dependencies": {"goom-math": ">=0.0.1", "goom-physics": ">=0.0.1", "goom-ai": ">=0.0.1"},
 	"devDependencies": {"jasmine-node": ">=1.0.22", "jake": ">=0.2.28", "sentry": "0.1.2"},
-	"main": "src/goom-server.js"
+	"main": "src/server.js"
 }

@@ -120,13 +120,13 @@ describe("Server", function(){
 	});
 
 	it("should receive to client events", function() {
-		this.server.receiveEvent({type: "fire", target: "megaboss"});
+		this.server.receiveEvent({type: "fire", target: "megaboss", from: "player1"});
 		expect(this.server.incomingEvents.length).toBe(1);
 	});
 
 	it("should change the world according to the received events", function() {
-		this.server.receiveEvent({type: "fire", target: "megaboss"});
-		this.server.update(1);
+		this.server.receiveEvent({type: "fire", target: "megaboss", from: "player2"});
+		this.server.update();
 		expect(this.server.incomingEvents.length).toBe(0);
 		expect(this.outEvents.length).toBeGreaterThan(0);
 	});
