@@ -1,4 +1,4 @@
-var AIWorld = require("goom-ai").World, PhysicsWorld = require("goom-physics").World;
+var AIWorld = require("goom-ai-js").World, PhysicsWorld = require("goom-physics-js").World;
 
 /**
 	Creates a new Server.
@@ -9,14 +9,18 @@ var AIWorld = require("goom-ai").World, PhysicsWorld = require("goom-physics").W
 	@property {Goom.Physics.World} physicsWorld A physics world instance.
 	@property {Array} incomingEvents The events the server has received and not yet processed.
 	@property {Array} outgoingEvents The events the server needs to send to the clients in orther to update them.
-	@property {Function} broadcastCallback The function to be called in order to broadcast events or world updates to the clients.
+	@property {Function} broadcastCallback The function to be called in order to broadcast events or world updates to all the clients.
+	@property {Function} sendToCallback The function to be called in order to broadcast events or world updates to the clients.
 	@property {Number} lastUpdate Time of the last update.
+	@property {json} config a copy of the serever configuration used to tell clients how to populate the world.
 	@exports Server
 */
-function Server(config, broadcast_callback) {
+function Server(config, broadcast_callback, sendto_callback) {
 	this.broadcastCallback = broadcast_callback;
+	this.sendToCallback = sendto_callback;
 	this.incomingEvents = [], this.outgoingEvents = [];
 	this.lastUpdate = 0;
+	this.config = config;
 
 	this.aiWorld = new AIWorld(config);
 	this.physicsWorld = new PhysicsWorld();
@@ -62,25 +66,40 @@ Server.prototype.receiveEvent = function(event) {
 	Updates the worlds in the server, updating both physics and AI.
 */
 Server.prototype.update = function() {
-	var now = new Date(), elapsed_time = now - this.lastUpdate;
+	var now = new Date(), elapsed_time = now - this.lastUpdate, event;
 	//TODO: process incoming events
+	for (var i = 0, len = this.incomingEvents.length; i < len; i++) {
+		event = this.incomingEvents[i];
+		switch (event.type) {
+			case "connection":
+				this.outgoingEvents.push({"type": "init", "config": this.config, "to": event.from});
+				break;
+			default: break;
+		}
+	}
+
 	this.incomingEvents.length = 0;
 
 	this.aiWorld.update(elapsed_time);
 	this.physicsWorld.update(elapsed_time);
 
 	var bodies = this.physicsWorld.rigidBodies, body, update_event = {"type": "update_world", "bodies": []};
-	for (var i = bodies.length - 1; i >= 0; i--) {
+	for (i = bodies.length - 1; i >= 0; i--) {
 		body = bodies[i];
 		//no need to update the body data to the clients if it is unchanged.
 		if (!body.isDirty) continue;
-		update_event.bodies.push({"position": {"x": body.position.x, "y": body.position.y, "z": body.position.z},
+		update_event.bodies.push({ "id": body.id, "position": {"x": body.position.x, "y": body.position.y, "z": body.position.z},
 			"orientation": {"r": body.orientation.r, "i": body.orientation.i, "j": body.orientation.j, "k": body.orientation.k}});
 	}
 	this.outgoingEvents.push(update_event);
 	
 	//Broadcast the outgoing events to the clients.
 	for (i = this.outgoingEvents.length - 1; i >= 0; i--) {
+		if (this.outgoingEvents[i].to) {
+			this.sendToCallback(this.outgoingEvents[i], this.outgoingEvents[i].to);
+			continue;
+		}
+		//If it doesn't go to a singular client it goes to all the clients
 		this.broadcastCallback(this.outgoingEvents[i]);
 	}
 

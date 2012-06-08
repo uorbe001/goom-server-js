@@ -1,7 +1,7 @@
 {
-	"name": "goom-server",
+	"name": "goom-server-js",
 	"version": "0.0.1",
-	"dependencies": {"goom-math": ">=0.0.1", "goom-physics": ">=0.0.1", "goom-ai": ">=0.0.1"},
+	"dependencies": {"goom-math-js": ">=0.0.1", "goom-physics-js": ">=0.0.1", "goom-ai-js": ">=0.0.1"},
 	"devDependencies": {"jasmine-node": ">=1.0.22", "jake": ">=0.2.28", "sentry": "0.1.2"},
 	"main": "src/server.js"
 }

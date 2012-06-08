@@ -1,4 +1,4 @@
-var Server = require("../../src/server"), Responses = require("goom-ai").Responses;
+var Server = require("../../src/server"), Responses = require("goom-ai-js").Responses;
 
 describe("Server", function(){
 	beforeEach(function() {
@@ -95,8 +95,9 @@ describe("Server", function(){
 
 		this.outEvents = [];
 		var that = this;
-		var broadcast = function(event) { that.outEvents.push(event) ;};
-		this.server = new Server(config, broadcast);
+		var broadcast = function(event) { that.outEvents.push(event); };
+		var sendTo = function(event, id) { that.outEvents.push(event); };
+		this.server = new Server(config, broadcast, sendTo);
 	});
 
 	it("server should be create the world(s) correctly", function() {
