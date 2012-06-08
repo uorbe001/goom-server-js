@@ -12,7 +12,7 @@ var AIWorld = require("goom-ai-js").World, PhysicsWorld = require("goom-physics-
 	@property {Function} broadcastCallback The function to be called in order to broadcast events or world updates to all the clients.
 	@property {Function} sendToCallback The function to be called in order to broadcast events or world updates to the clients.
 	@property {Number} lastUpdate Time of the last update.
-	@property {json} config a copy of the serever configuration used to tell clients how to populate the world.
+	@property {json} clientConfig a world config used to populate the client worlds.
 	@exports Server
 */
 function Server(config, broadcast_callback, sendto_callback) {
@@ -20,7 +20,7 @@ function Server(config, broadcast_callback, sendto_callback) {
 	this.sendToCallback = sendto_callback;
 	this.incomingEvents = [], this.outgoingEvents = [];
 	this.lastUpdate = 0;
-	this.config = config;
+	this.clientConfig = this.__createClientConfig(config);
 
 	this.aiWorld = new AIWorld(config);
 	this.physicsWorld = new PhysicsWorld();
@@ -105,6 +105,51 @@ Server.prototype.update = function() {
 
 	this.outgoingEvents.length = 0;
 	this.lastUpdate = now;
+};
+
+/**
+	@inner Creates a clientConfig file from the server config.
+	@param {json} config Server config.
+	@returns client config
+*/
+Server.prototype.__createClientConfig = function(config) {
+	var c = {};
+	c.level = {};
+	c.level.model_instances = [];
+	var objModelToRenderModel = {}, instance, inst_description;
+
+	for (var i = 0, len = config.agent_models.length; i < len; i++) {
+		objModelToRenderModel[config.agent_models[i].name] = config.agent_models[i].appearance.model;
+	}
+
+	for (i = 0, len = config.object_models.length; i < len; i++) {
+		objModelToRenderModel[config.object_models[i].name] = config.object_models[i].appearance.model;
+	}
+
+	for (i = 0, len = config.level.agents.length; i < len; i++) {
+		instance = {};
+		inst_description = config.level.agents[i];
+		instance.id = inst_description.id;
+		instance.model = objModelToRenderModel[inst_description.model];
+		if (inst_description.position) instance.position = JSON.parse(JSON.stringify(inst_description.position));
+		if (inst_description.orientation) instance.orientation = JSON.parse(JSON.stringify(inst_description.orientation));
+		c.level.model_instances.push(instance);
+	}
+
+	for (i = 0, len = config.level.objects.length; i < len; i++) {
+		instance = {};
+		inst_description = config.level.objects[i];
+		instance.id = inst_description.id;
+		instance.model = objModelToRenderModel[inst_description.model];
+		if (inst_description.position) instance.position = JSON.parse(JSON.stringify(inst_description.position));
+		if (inst_description.orientation) instance.orientation = JSON.parse(JSON.stringify(inst_description.orientation));
+		c.level.model_instances.push(instance);
+	}
+
+	//TODO lights & cameras
+	c.render_models = JSON.parse(JSON.stringify(config.render_models));
+
+	return c;
 };
 
 module.exports = Server;

@@ -6,6 +6,11 @@ describe("Server", function(){
 		spyOn(this, 'a1').andCallThrough();
 
 		var config = {
+			"render_models": {
+				"box": "assets/box.wglmodel",
+				"robot_arm": "assets/robot_arm.wglmodel"
+			},
+
 			"agent_models": [
 				{
 					"name": "box_agent",
@@ -130,5 +135,19 @@ describe("Server", function(){
 		this.server.update();
 		expect(this.server.incomingEvents.length).toBe(0);
 		expect(this.outEvents.length).toBeGreaterThan(0);
+	});
+
+	it("should create the client config correctly", function() {
+		expect(this.server.clientConfig.render_models.box).toEqual("assets/box.wglmodel");
+		expect(this.server.clientConfig.render_models.robot_arm).toEqual("assets/robot_arm.wglmodel");
+		expect(this.server.clientConfig.level.model_instances.length).toBe(2);
+		expect(this.server.clientConfig.level.model_instances[0].model).toEqual("box");
+		expect(this.server.clientConfig.level.model_instances[0].position.x).toBe(0);
+		expect(this.server.clientConfig.level.model_instances[0].orientation.r).toBe(1);
+		expect(this.server.clientConfig.level.model_instances[0].id).toEqual("0");
+		expect(this.server.clientConfig.level.model_instances[1].model).toEqual("box");
+		expect(this.server.clientConfig.level.model_instances[1].position.x).toBe(0);
+		expect(this.server.clientConfig.level.model_instances[1].orientation.r).toBe(1);
+		expect(this.server.clientConfig.level.model_instances[1].id).toEqual("1");
 	});
 });
