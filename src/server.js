@@ -1,4 +1,4 @@
-var AIWorld = require("goom-ai-js").World, PhysicsWorld = require("goom-physics-js").World;
+var AIWorld = require("goom-ai-js").World, PhysicsWorld = require("goom-physics-js").World, Gravity = require("goom-physics-js").Gravity;
 
 /**
 	Creates a new Server.
@@ -51,6 +51,20 @@ function Server(config, broadcast_callback, sendto_callback) {
 		body = this.physicsWorld.addBody(obj);
 		agent = this.aiWorld.findInstance(obj.id);
 		body.listenToUpdates(agent, update_agent);
+	}
+
+	var gravity_generator;
+	//Register gravity
+	if (config.level.force_generators.gravity !== undefined) {
+		gravity_generator = new Gravity(config.level.force_generators.gravity.force);
+
+		for (i = 0, len = config.level.force_generators.gravity.affected_bodies.length; i < len; i++) {
+			body = this.physicsWorld.findBody(config.level.force_generators.gravity.affected_bodies[i]);
+
+			if (body !== null) {
+				this.physicsWorld.registerBodyAffectedByForceGenerator(body, gravity_generator);
+			}
+		}
 	}
 }
 

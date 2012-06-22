@@ -83,6 +83,13 @@ describe("Server", function(){
 					]
 				},
 
+				"force_generators": {
+					"gravity": {
+						"force": {"x": 0, "y": -10, "z": 0},
+						"affected_bodies": ["0", "1"]
+					}
+				},
+
 				"agents": [
 					{
 						"id": "0",
@@ -132,6 +139,7 @@ describe("Server", function(){
 		expect(this.server.physicsWorld.rigidBodies.length).toBe(2);
 		expect(this.server.physicsWorld.findBody("0").listeners.length).toBe(1);
 		expect(this.server.physicsWorld.findBody("0").listeners[0]).toBe(this.server.aiWorld.findInstance("0"));
+		expect(this.server.physicsWorld.registry.registrations.length).toBe(2);
 	});
 
 	it("should receive to client events", function() {
