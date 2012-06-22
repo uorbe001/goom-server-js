@@ -72,7 +72,7 @@ Server.prototype.update = function() {
 		event = this.incomingEvents[i];
 		switch (event.type) {
 			case "connection":
-				this.outgoingEvents.push({"type": "init", "config": this.config, "to": event.from});
+				this.outgoingEvents.push({"type": "init", "config": this.clientConfig, "to": event.from});
 				break;
 			default: break;
 		}
@@ -91,9 +91,11 @@ Server.prototype.update = function() {
 		update_event.bodies.push({ "id": body.id, "position": {"x": body.position.x, "y": body.position.y, "z": body.position.z},
 			"orientation": {"r": body.orientation.r, "i": body.orientation.i, "j": body.orientation.j, "k": body.orientation.k}});
 	}
-	this.outgoingEvents.push(update_event);
+
+	//don't send update event when there isn't any updates.
+	if (update_event.bodies.length !== 0) this.outgoingEvents.push(update_event);
 	
-	//Broadcast the outgoing events to the clients.
+	//Send the outgoing events to the clients.
 	for (i = this.outgoingEvents.length - 1; i >= 0; i--) {
 		if (this.outgoingEvents[i].to) {
 			this.sendToCallback(this.outgoingEvents[i], this.outgoingEvents[i].to);
@@ -116,6 +118,7 @@ Server.prototype.__createClientConfig = function(config) {
 	var c = {};
 	c.level = {};
 	c.level.model_instances = [];
+	c.level.cameras = [];
 	var objModelToRenderModel = {}, instance, inst_description;
 
 	for (var i = 0, len = config.agent_models.length; i < len; i++) {
@@ -124,6 +127,10 @@ Server.prototype.__createClientConfig = function(config) {
 
 	for (i = 0, len = config.object_models.length; i < len; i++) {
 		objModelToRenderModel[config.object_models[i].name] = config.object_models[i].appearance.model;
+	}
+
+	for (i = 0, len = config.level.cameras.length; i < len; i++) {
+		c.level.cameras.push(JSON.parse(JSON.stringify(config.level.cameras[i])));
 	}
 
 	for (i = 0, len = config.level.agents.length; i < len; i++) {
