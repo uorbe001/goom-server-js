@@ -110,6 +110,14 @@ describe("Server", function(){
 						"position": {"x": 0, "y": 0, "z": 0},
 						"orientation": {"r": 1, "i": 0, "j": 0, "k": 0}
 					}
+				],
+
+				"planes": [
+					{
+						"normal": { "x": 0,	"y": 1, "z": 0},
+						"offset": 10,
+						"visible": true
+					}
 				]
 			}
 		};
@@ -140,18 +148,12 @@ describe("Server", function(){
 		expect(this.server.physicsWorld.findBody("0").listeners.length).toBe(1);
 		expect(this.server.physicsWorld.findBody("0").listeners[0]).toBe(this.server.aiWorld.findInstance("0"));
 		expect(this.server.physicsWorld.registry.registrations.length).toBe(2);
+		expect(this.server.physicsWorld.planes.length).toBe(1);
 	});
 
 	it("should receive to client events", function() {
 		this.server.receiveEvent({type: "fire", target: "megaboss", from: "player1"});
 		expect(this.server.incomingEvents.length).toBe(1);
-	});
-
-	xit("should change the world according to the received events", function() { //TODO
-		this.server.receiveEvent({type: "fire", target: "megaboss", from: "player2"});
-		this.server.update();
-		expect(this.server.incomingEvents.length).toBe(0);
-		expect(this.outEvents.length).toBeGreaterThan(0);
 	});
 
 	it("should create the client config correctly", function() {
@@ -166,5 +168,99 @@ describe("Server", function(){
 		expect(this.server.clientConfig.level.model_instances[1].position.x).toBe(0);
 		expect(this.server.clientConfig.level.model_instances[1].orientation.r).toBe(1);
 		expect(this.server.clientConfig.level.model_instances[1].id).toEqual("1");
+	});
+
+	it("should add a player to the server correctly", function() {
+		this.server.addPlayer({
+			"id": "player0",
+			"position": {"x": 0, "y": 0, "z": 0},
+			"orientation": {"r": 1, "i": 0, "j": 0, "k": 0},
+			"health": 90,
+			"energy": 80,
+
+			"model": {
+				"movement": {
+					"velocity": 12,
+					"angular_velocity": 10
+				},
+				"body": {
+					"max_health": 100,
+					"max_energy": 100
+				}
+			},
+
+			"body": {
+				"weight": 1,
+				"inertial_tensor": [1/12, 1/12, 1/12],
+				"primitives": [
+					{
+						"type": "box",
+						"halfSize": {"x": 1, "y": 1, "z": 1},
+						"offset":  [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1]
+					}
+				]
+			},
+
+			"appearance": {
+				"model": "box"
+			}
+		});
+
+		expect(this.server.physicsWorld.rigidBodies.length).toBe(3);
+		expect(this.server.players.length).toBe(1);
+		expect(this.server.outgoingEvents.length).toBe(1);
+		expect(this.server.outgoingEvents[0].type).toEqual("new_player");
+		expect(this.server.outgoingEvents[0].appearance.model).toEqual("box");
+		expect(this.server.outgoingEvents[0].position).toBeDefined();
+		expect(this.server.outgoingEvents[0].orientation).toBeDefined();
+		expect(this.server.outgoingEvents[0].health).toBe(90);
+		expect(this.server.outgoingEvents[0].energy).toBe(80);
+		expect(this.server.outgoingEvents[0].model.body.max_health).toBeDefined();
+		expect(this.server.outgoingEvents[0].model.body.max_energy).toBeDefined();
+	});
+
+	it("should set listeners for inputs correctly", function() {
+		this.server.addPlayer({
+			"id": "player0",
+			"position": {"x": 0, "y": 0, "z": 0},
+			"orientation": {"r": 1, "i": 0, "j": 0, "k": 0},
+			"health": 90,
+			"energy": 80,
+
+			"model": {
+				"movement": {
+					"velocity": 5,
+					"angular_velocity": 10
+				},
+				"body": {
+					"max_health": 100,
+					"max_energy": 100
+				}
+			},
+
+			"body": {
+				"weight": 1,
+				"inertial_tensor": [1/12, 1/12, 1/12],
+				"primitives": [
+					{
+						"type": "box",
+						"halfSize": {"x": 1, "y": 1, "z": 1},
+						"offset":  [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1]
+					}
+				]
+			},
+
+			"appearance": {
+				"model": "box"
+			}
+		});
+
+		this.server.on("left", function(player) {
+			player.velocity.z = player.model.movement.velocity;
+			player.isDirty = true;
+		});
+
+		this.server.receiveEvent({"type": "input", "value": "left", "from": "player0"}); this.server.update(1);
+		expect(this.server.players[0].body.velocity.z).toBe(12);
 	});
 });

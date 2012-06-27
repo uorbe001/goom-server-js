@@ -18,7 +18,7 @@ task("test", function(params){
 desc("Builds the project into a minified file.");
 task("build", function(params){
 	console.log("Building the project into a minified file...")
-	exec("browserify src/goom-server.js  -o dist/goom-server.js", function (error, stdout, stderr) {
+	exec("browserify src/server.js  -o dist/goom-server.js", function (error, stdout, stderr) {
 		sys.print(stdout);
 		if (error)
 			sys.print(stderr);
