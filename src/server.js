@@ -193,7 +193,7 @@ Server.prototype.update = function() {
 	for (i = bodies.length - 1; i >= 0; i--) {
 		body = bodies[i];
 		//no need to update the body data to the clients if it is unchanged.
-		//if (!body.isDirty) continue;
+		if (!body.isDirty) continue;
 
 		update_event.bodies.push({ "id": body.id, "position": {"x": body.position.x, "y": body.position.y, "z": body.position.z},
 			"orientation": {"r": body.orientation.r, "i": body.orientation.i, "j": body.orientation.j, "k": body.orientation.k},
