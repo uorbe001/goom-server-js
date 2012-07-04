@@ -90,7 +90,7 @@ Server.prototype.receiveEvent = function(event) {
 };
 
 Server.prototype.addPlayer = function(data) {
-	var player = {}, event = {"type": "new_player"};
+	var player = {}, event = {"type": "new_player"}, that = this;
 
 	player.id = data.id;
 	player.body = this.physicsWorld.addBody(data);
@@ -100,6 +100,9 @@ Server.prototype.addPlayer = function(data) {
 	player.angular_velocity = player.body.angular_velocity;
 	player.isDirty = player.body.isDirty;
 	player.isAwake = player.body.isAwake;
+	player.playAnimation = function (name) {
+		that.outgoingEvents.push({"type": "play_animation", "player_id": player.id, "animation_name": name});
+	};
 
 	for (var key in data) {
 		event[key] = JSON.parse(JSON.stringify(data[key]));
@@ -139,8 +142,8 @@ Server.prototype.update = function() {
 				this.outgoingEvents.push({"type": "init", "config": this.clientConfig, "to": event.from});
 				this.addPlayer({
 					"id": event.from,
-					"position": {"x": 0, "y": -2, "z": 0},
-					"orientation": {"r": 1, "i": 0, "j": 0, "k": 0},
+					"position": {"x": 0, "y": 0, "z": 0},
+					"orientation": {"r": 0, "i": 0, "j": 0, "k": 0},
 					"health": 90,
 					"energy": 80,
 
@@ -168,7 +171,7 @@ Server.prototype.update = function() {
 					},
 
 					"appearance": {
-						"model": "box"
+						"model": "soldier"
 					}
 				});
 				break;
